@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 abstract class CustomColors {
   CustomColors._();
-  static const Color PRIMARY = Color(0xFFFF7272);
+  static const Color PRIMARY = Color(0xFF34C47C);
   static const Color SURFACE = Color(0xFFEBEBEB);
   static const Color ONSURFACE = Color(0xFF2F2E41);
   static const Color PRIMARY_VARIANT = Color(0xFF27C96D);
