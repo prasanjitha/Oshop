@@ -27,6 +27,7 @@ class _SignUpPageViewState extends State<SignUpPageView> {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: CustomMainAppBar(
         appBarText: 'Sign in',
@@ -38,71 +39,79 @@ class _SignUpPageViewState extends State<SignUpPageView> {
           );
         },
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(
-          left: 20.0,
-          right: 20.0,
-          bottom: 20.0,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Let\'s create your foodly account',
-              style: Theme.of(context).textTheme.headline1!.copyWith(
-                    fontSize: 36.0,
-                  ),
-            ),
-            Form(
-              key: _formKey,
-              child: Column(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(
+            left: 20.0,
+            right: 20.0,
+            bottom: 20.0,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Let\'s create your foodly account',
+                style: Theme.of(context).textTheme.headline1!.copyWith(
+                      fontSize: 36.0,
+                    ),
+              ),
+              SizedBox(
+                height: height * 0.04,
+              ),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    CustomTextFormField(
+                      hintText: 'Enter username',
+                      controller: usernameTextEditingController,
+                      validatorText: "Username is required",
+                    ),
+                    CustomTextFormField(
+                      hintText: 'Enter email',
+                      controller: emailTextEditingController,
+                      validatorText: "Email is required",
+                    ),
+                    CustomTextFormField(
+                      hintText: 'Enter password',
+                      controller: passwordTextEditingController,
+                      validatorText: "Password is required",
+                    ),
+                    CustomTextFormField(
+                      hintText: 'Re enter password',
+                      controller: rePasswordTextEditingController,
+                      validatorText: "Pleasr re-enter password",
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: height * 0.15,
+              ),
+              Column(
                 children: [
-                  CustomTextFormField(
-                    hintText: 'Enter username',
-                    controller: usernameTextEditingController,
-                    validatorText: "Username is required",
+                  Text(
+                    'By signing up you accept the Terms of Service and Privacy Policy.',
+                    style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                          fontSize: 16.0,
+                        ),
+                    textAlign: TextAlign.center,
                   ),
-                  CustomTextFormField(
-                    hintText: 'Enter email',
-                    controller: emailTextEditingController,
-                    validatorText: "Email is required",
+                  const SizedBox(
+                    height: 20.0,
                   ),
-                  CustomTextFormField(
-                    hintText: 'Enter password',
-                    controller: passwordTextEditingController,
-                    validatorText: "Password is required",
-                  ),
-                  CustomTextFormField(
-                    hintText: 'Re enter password',
-                    controller: rePasswordTextEditingController,
-                    validatorText: "Pleasr re-enter password",
+                  CustomNextButton(
+                    btnText: 'Sign up',
+                    tap: () {
+                      if (_formKey.currentState!.validate()) {
+                        log(emailTextEditingController.text);
+                      }
+                    },
                   ),
                 ],
               ),
-            ),
-            Column(
-              children: [
-                Text(
-                  'By signing up you accept the Terms of Service and Privacy Policy.',
-                  style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                        fontSize: 16.0,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(
-                  height: 20.0,
-                ),
-                CustomNextButton(
-                  btnText: 'Sign up',
-                  tap: () {
-                    if (_formKey.currentState!.validate()) {
-                      log(emailTextEditingController.text);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
