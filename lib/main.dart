@@ -1,9 +1,11 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:oshop/views/on_board_screen/onboard_screen_one.dart';
-
 import 'theme/custom_themes.dart';
+import 'views/Authentication/signup_page/signup_page_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -16,7 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Oshop',
       theme: CustomThemes.lightTheme(context),
-      home: const OnBoardScreenOne(),
+      home: SignUpPageProvider(),
     );
   }
 }

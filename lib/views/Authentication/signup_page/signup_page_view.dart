@@ -1,11 +1,13 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:oshop/theme/custom_colors.dart';
-
+import 'package:oshop/views/Authentication/signup_page/signup_page_event.dart';
 import '../../../widgets/custom_green_button.dart';
+import '../../../widgets/custom_main_appbar.dart';
+import '../../../widgets/custom_text_form_field.dart';
 import '../../on_board_screen/welcome_screen.dart';
+import 'signup_page_bloc.dart';
 
 class SignUpPageView extends StatefulWidget {
   const SignUpPageView({Key? key}) : super(key: key);
@@ -16,17 +18,21 @@ class SignUpPageView extends StatefulWidget {
 
 class _SignUpPageViewState extends State<SignUpPageView> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController usernameTextEditingController =
-      TextEditingController();
-  final TextEditingController emailTextEditingController =
-      TextEditingController();
-  final TextEditingController passwordTextEditingController =
-      TextEditingController();
-  final TextEditingController rePasswordTextEditingController =
-      TextEditingController();
-
+  final passwordValidator = MultiValidator([
+    RequiredValidator(errorText: 'password is required'),
+    MinLengthValidator(8, errorText: 'password must be at least 8 digits long'),
+    PatternValidator(r'(?=.*?[#?!@$%^&*-])',
+        errorText: 'passwords must have at least one special character')
+  ]);
+  final emailValidator = MultiValidator([
+    RequiredValidator(errorText: 'email is required'),
+    EmailValidator(errorText: "Email is required"),
+  ]);
+  bool _obscureTextConPassword = true;
   @override
   Widget build(BuildContext context) {
+    final SignUpPageBloc bloc = BlocProvider.of<SignUpPageBloc>(context);
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: CustomMainAppBar(
         appBarText: 'Sign in',
@@ -38,158 +44,128 @@ class _SignUpPageViewState extends State<SignUpPageView> {
           );
         },
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(
-          left: 20.0,
-          right: 20.0,
-          bottom: 20.0,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Let\'s create your foodly account',
-              style: Theme.of(context).textTheme.headline1!.copyWith(
-                    fontSize: 36.0,
-                  ),
-            ),
-            Form(
-              key: _formKey,
-              child: Column(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(
+            left: 20.0,
+            right: 20.0,
+            bottom: 20.0,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Let\'s create your foodly account',
+                style: Theme.of(context).textTheme.headline1!.copyWith(
+                      fontSize: 36.0,
+                    ),
+              ),
+              SizedBox(
+                height: height * 0.04,
+              ),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    CustomTextFormField(
+                      hintText: 'Enter username',
+                      controller: bloc.usernameTextEditingController,
+                      validator:
+                          RequiredValidator(errorText: 'Username is required'),
+                    ),
+                    CustomTextFormField(
+                      hintText: 'Enter email',
+                      validator: emailValidator,
+                      controller: bloc.emailTextEditingController,
+                    ),
+                    CustomTextFormField(
+                      validator: passwordValidator,
+                      hintText: 'Enter password',
+                      controller: bloc.passwordTextEditingController,
+                    ),
+                    const SizedBox(
+                      height: 10.0,
+                    ),
+                    TextFormField(
+                      controller: bloc.rePasswordTextEditingController,
+                      obscureText: _obscureTextConPassword,
+                      keyboardType: TextInputType.text,
+                      validator: (val) => MatchValidator(
+                              errorText: 'passwords do not match')
+                          .validateMatch(val!,
+                              bloc.passwordTextEditingController.text.trim()),
+                      decoration: InputDecoration(
+                        suffixIcon: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _obscureTextConPassword =
+                                  !_obscureTextConPassword;
+                            });
+                          },
+                          child: Icon(
+                            _obscureTextConPassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: CustomColors.PRIMARY,
+                            size: 24.0,
+                          ),
+                        ),
+                        isDense: true,
+                        hintText: 'Re Enter Password',
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
+                        enabledBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: CustomColors.PRIMARY),
+                        ),
+                        focusedBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: CustomColors.PRIMARY),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: height * 0.15,
+              ),
+              Column(
                 children: [
-                  CustomTextFormField(
-                    hintText: 'Enter username',
-                    controller: usernameTextEditingController,
-                    validatorText: "Username is required",
+                  Text(
+                    'By signing up you accept the Terms of Service and Privacy Policy.',
+                    style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                          fontSize: 16.0,
+                        ),
+                    textAlign: TextAlign.center,
                   ),
-                  CustomTextFormField(
-                    hintText: 'Enter email',
-                    controller: emailTextEditingController,
-                    validatorText: "Email is required",
+                  const SizedBox(
+                    height: 20.0,
                   ),
-                  CustomTextFormField(
-                    hintText: 'Enter password',
-                    controller: passwordTextEditingController,
-                    validatorText: "Password is required",
-                  ),
-                  CustomTextFormField(
-                    hintText: 'Re enter password',
-                    controller: rePasswordTextEditingController,
-                    validatorText: "Pleasr re-enter password",
+                  CustomNextButton(
+                    btnText: 'Sign up',
+                    tap: () {
+                      try {
+                        if (_formKey.currentState!.validate()) {
+                          bloc.add(
+                            SubmitUserDataEvent(
+                              email:
+                                  bloc.emailTextEditingController.text.trim(),
+                              username: bloc.usernameTextEditingController.text
+                                  .trim(),
+                              password: bloc.passwordTextEditingController.text
+                                  .trim(),
+                              repsd: bloc.rePasswordTextEditingController.text
+                                  .trim(),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        Future.error(e.toString());
+                      }
+                    },
                   ),
                 ],
               ),
-            ),
-            Column(
-              children: [
-                Text(
-                  'By signing up you accept the Terms of Service and Privacy Policy.',
-                  style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                        fontSize: 16.0,
-                      ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(
-                  height: 20.0,
-                ),
-                CustomNextButton(
-                  btnText: 'Sign up',
-                  tap: () {
-                    if (_formKey.currentState!.validate()) {
-                      log(emailTextEditingController.text);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class CustomTextFormField extends StatelessWidget {
-  final String validatorText;
-  final String hintText;
-  final TextEditingController controller;
-  const CustomTextFormField({
-    Key? key,
-    required this.validatorText,
-    required this.controller,
-    required this.hintText,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      cursorColor: CustomColors.PRIMARY,
-      validator: RequiredValidator(errorText: validatorText),
-      decoration: InputDecoration(
-        focusedBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(
-            width: 1.2,
-            color: CustomColors.PRIMARY,
+            ],
           ),
-        ),
-        enabledBorder: const UnderlineInputBorder(
-          borderSide: BorderSide(
-            width: 1.2,
-            color: CustomColors.PRIMARY,
-          ),
-        ),
-        hintText: hintText,
-      ),
-    );
-  }
-}
-
-class CustomMainAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final VoidCallback tap;
-  final String appBarText;
-  const CustomMainAppBar({
-    Key? key,
-    required this.appBarText,
-    required this.tap,
-  }) : super(key: key);
-  @override
-  Size get preferredSize => const Size.fromHeight(90);
-  @override
-  Widget build(BuildContext context) {
-    return PreferredSize(
-      preferredSize: const Size(0, 90),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: AppBar(
-          primary: false,
-          leading: Padding(
-            padding: const EdgeInsets.only(top: 18.0),
-            child: InkWell(
-              onTap: tap,
-              child: Text(
-                appBarText,
-                style: Theme.of(context)
-                    .textTheme
-                    .subtitle1!
-                    .copyWith(fontSize: 18.0, color: CustomColors.ONSURFACE),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-          title: Image.asset('assets/icons/logo_icon.png'),
-          centerTitle: true,
-          actions: [
-            InkWell(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: const Icon(
-                Icons.close,
-                color: CustomColors.ONSURFACE,
-              ),
-            )
-          ],
         ),
       ),
     );
